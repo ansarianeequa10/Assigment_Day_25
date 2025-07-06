@@ -1,0 +1,27 @@
+<?php
+include 'db.php';
+
+$name = $_POST['name'];
+$email = $_POST['email'];
+
+$file = $_FILES['resume'];
+$filename = basename($file['name']);
+$targetDir = "uploads/";
+$targetFile = $targetDir . time() . "_" . $filename;
+
+$fileType = strtolower(pathinfo($targetFile, PATHINFO_EXTENSION));
+$allowed = ['pdf', 'doc', 'docx'];
+
+if (in_array($fileType, $allowed) && $file['size'] <= 2*1024*1024) {
+    if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+        $stmt = $conn->prepare("INSERT INTO applications (name, email, resume_path) VALUES (?, ?, ?)");
+        $stmt->bind_param("sss", $name, $email, $targetFile);
+        $stmt->execute();
+        echo "Application submitted successfully!";
+    } else {
+        echo "Upload failed!";
+    }
+} else {
+    echo "Invalid file type or size!";
+}
+?>
